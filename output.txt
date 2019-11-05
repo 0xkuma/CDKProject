@@ -8,7 +8,7 @@ Resources:
       InstanceTenancy: default
       Tags:
         - Key: Name
-          Value: CdkWorkshopStack/cdk-Vpc
+          Value: edx-build-aws-vpc
     Metadata:
       aws:cdk:path: CdkWorkshopStack/cdk-Vpc/Resource
   cdkVpcPublicSubnet1SubnetF181ADCD:
@@ -256,7 +256,7 @@ Resources:
     Properties:
       Tags:
         - Key: Name
-          Value: CdkWorkshopStack/cdk-Vpc
+          Value: edx-build-aws-vpc
     Metadata:
       aws:cdk:path: CdkWorkshopStack/cdk-Vpc/IGW
   cdkVpcVPCGW3EC4BD15:
@@ -268,16 +268,67 @@ Resources:
         Ref: cdkVpcIGW472C7F82
     Metadata:
       aws:cdk:path: CdkWorkshopStack/cdk-Vpc/VPCGW
-  MyUserDC45028B:
+  edxbuildawss3Key1E5DD9BB:
+    Type: AWS::KMS::Key
+    Properties:
+      KeyPolicy:
+        Statement:
+          - Action:
+              - kms:Create*
+              - kms:Describe*
+              - kms:Enable*
+              - kms:List*
+              - kms:Put*
+              - kms:Update*
+              - kms:Revoke*
+              - kms:Disable*
+              - kms:Get*
+              - kms:Delete*
+              - kms:ScheduleKeyDeletion
+              - kms:CancelKeyDeletion
+              - kms:GenerateDataKey
+            Effect: Allow
+            Principal:
+              AWS:
+                Fn::Join:
+                  - ""
+                  - - "arn:"
+                    - Ref: AWS::Partition
+                    - ":iam::"
+                    - Ref: AWS::AccountId
+                    - :root
+            Resource: "*"
+        Version: "2012-10-17"
+      Description: Created by CdkWorkshopStack/edx-build-aws-s3
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain
+    Metadata:
+      aws:cdk:path: CdkWorkshopStack/edx-build-aws-s3/Key/Resource
+  edxbuildawss39543392C:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              KMSMasterKeyID:
+                Fn::GetAtt:
+                  - edxbuildawss3Key1E5DD9BB
+                  - Arn
+              SSEAlgorithm: aws:kms
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain
+    Metadata:
+      aws:cdk:path: CdkWorkshopStack/edx-build-aws-s3/Resource
+  edxProjectUserBC265898:
     Type: AWS::IAM::User
     Properties:
       Groups:
-        - Ref: MyGroupCBA54B1B
+        - Ref: Developers95C0CB5E
       LoginProfile:
         Password: "1234"
     Metadata:
-      aws:cdk:path: CdkWorkshopStack/MyUser/Resource
-  MyGroupCBA54B1B:
+      aws:cdk:path: CdkWorkshopStack/edxProjectUser/Resource
+  Developers95C0CB5E:
     Type: AWS::IAM::Group
     Properties:
       ManagedPolicyArns:
@@ -287,11 +338,11 @@ Resources:
               - Ref: AWS::Partition
               - :iam::aws:policy/AmazonEC2FullAccess
     Metadata:
-      aws:cdk:path: CdkWorkshopStack/MyGroup/Resource
+      aws:cdk:path: CdkWorkshopStack/Developers/Resource
   CDKMetadata:
     Type: AWS::CDK::Metadata
     Properties:
-      Modules: aws-cdk=1.12.0,@aws-cdk/aws-cloudwatch=1.15.0,@aws-cdk/aws-ec2=1.15.0,@aws-cdk/aws-iam=1.15.0,@aws-cdk/aws-ssm=1.15.0,@aws-cdk/core=1.15.0,@aws-cdk/cx-api=1.15.0,@aws-cdk/region-info=1.15.0,jsii-runtime=node.js/v10.16.3
+      Modules: aws-cdk=1.12.0,@aws-cdk/aws-cloudwatch=1.15.0,@aws-cdk/aws-ec2=1.15.0,@aws-cdk/aws-events=1.15.0,@aws-cdk/aws-iam=1.15.0,@aws-cdk/aws-kms=1.15.0,@aws-cdk/aws-s3=1.15.0,@aws-cdk/aws-ssm=1.15.0,@aws-cdk/core=1.15.0,@aws-cdk/cx-api=1.15.0,@aws-cdk/region-info=1.15.0,jsii-runtime=node.js/v10.16.3
     Condition: CDKMetadataAvailable
 Conditions:
   CDKMetadataAvailable:
