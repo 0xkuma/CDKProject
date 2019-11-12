@@ -319,6 +319,60 @@ Resources:
     DeletionPolicy: Retain
     Metadata:
       aws:cdk:path: CdkWorkshopStack/edx-build-aws-s3/Resource
+  MyRoleF48FFE04:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: sns.amazonaws.com
+        Version: "2012-10-17"
+    Metadata:
+      aws:cdk:path: CdkWorkshopStack/MyRole/Resource
+  MyRoleDefaultPolicyA36BE1DD:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - iam:*
+              - rds:*
+              - sns:*
+              - cloudformation:*
+              - rekognition:*
+              - ec2:*
+              - cognito-idp:*
+              - sqs:*
+              - xray:*
+              - s3:*
+              - elasticloadbalancing:*
+              - cloud9:*
+              - lambda:*
+              - tag:GetResources
+              - logs:*
+              - kms:ListKeyPolicies
+              - kms:GenerateRandom
+              - kms:ListRetirableGrants
+              - kms:GetKeyPolicy
+              - kms:ListResourceTags
+              - kms:ReEncryptFrom
+              - kms:ListGrants
+              - kms:GetParametersForImport
+              - kms:ListKeys
+              - kms:GetKeyRotationStatus
+              - kms:ListAliases
+              - kms:ReEncryptTo
+              - kms:DescribeKey
+            Effect: Allow
+            Resource: "*"
+        Version: "2012-10-17"
+      PolicyName: MyRoleDefaultPolicyA36BE1DD
+      Roles:
+        - Ref: MyRoleF48FFE04
+    Metadata:
+      aws:cdk:path: CdkWorkshopStack/MyRole/DefaultPolicy/Resource
   edxProjectUserBC265898:
     Type: AWS::IAM::User
     Properties:

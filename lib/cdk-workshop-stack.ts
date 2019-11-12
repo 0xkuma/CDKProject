@@ -23,6 +23,45 @@ export class CdkWorkshopStack extends cdk.Stack {
       encryption: BucketEncryption.KMS
     });
 
+    //Create Role
+    const role = new iam.Role(this, 'edXProjectPolicy', {
+      assumedBy: new iam.ServicePrincipal('ec2.amazonaws.com')
+    });
+
+    role.addToPolicy(new iam.PolicyStatement({
+      resources: ['*'],
+      actions: [
+        "iam:*",
+        "rds:*",
+        "sns:*",
+        "cloudformation:*",
+        "rekognition:*",
+        "ec2:*",
+        "cognito-idp:*",
+        "sqs:*",
+        "xray:*",
+        "s3:*",
+        "elasticloadbalancing:*",
+        "cloud9:*",
+        "lambda:*",
+        "tag:GetResources",
+        "logs:*",
+        "kms:ListKeyPolicies",
+        "kms:GenerateRandom",
+        "kms:ListRetirableGrants",
+        "kms:GetKeyPolicy",
+        "kms:ListResourceTags",
+        "kms:ReEncryptFrom",
+        "kms:ListGrants",
+        "kms:GetParametersForImport",
+        "kms:ListKeys",
+        "kms:GetKeyRotationStatus",
+        "kms:ListAliases",
+        "kms:ReEncryptTo",
+        "kms:DescribeKey"
+      ]
+    }));
+
     //Create IAM User and Group
     const user = new iam.User(this, 'edxProjectUser', { password: SecretValue.plainText('1234') });
     const group = new iam.Group(this, 'Developers');
@@ -30,3 +69,8 @@ export class CdkWorkshopStack extends cdk.Stack {
     group.addUser(user)
   }
 }
+
+//wget https://us-west-2-tcdev.s3.amazonaws.com/courses/AWS-100-ADG/v1.1.0/exercises/ex-s3-upload.zip
+//unzip ex-s3-upload.zip
+//sudo pip-3.6 install -r exercise-s3-upload/FlaskApp/requirements.txt
+//sudo pip-3.6 install boto3
