@@ -6,7 +6,6 @@ import s3 = require('@aws-cdk/aws-s3')
 import { BucketEncryption } from '@aws-cdk/aws-s3';
 
 export class CdkWorkshopStack extends cdk.Stack {
-  readonly user: iam.User;
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
     // The code that defines your stack goes here
@@ -23,12 +22,8 @@ export class CdkWorkshopStack extends cdk.Stack {
       encryption: BucketEncryption.KMS
     });
 
-    //Create Role
-    const role = new iam.Role(this, 'edXProjectPolicy', {
-      assumedBy: new iam.ServicePrincipal('ec2.amazonaws.com')
-    });
-
-    role.addToPolicy(new iam.PolicyStatement({
+    //Create Policy for user
+    const policy = new iam.PolicyStatement({
       resources: ['*'],
       actions: [
         "iam:*",
@@ -60,12 +55,12 @@ export class CdkWorkshopStack extends cdk.Stack {
         "kms:ReEncryptTo",
         "kms:DescribeKey"
       ]
-    }));
+    })
 
     //Create IAM User and Group
     const user = new iam.User(this, 'edxProjectUser', { password: SecretValue.plainText('1234') });
     const group = new iam.Group(this, 'Developers');
-    group.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonEC2FullAccess'))
+    group.addToPolicy(policy)
     group.addUser(user)
   }
 }

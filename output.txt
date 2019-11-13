@@ -319,19 +319,20 @@ Resources:
     DeletionPolicy: Retain
     Metadata:
       aws:cdk:path: CdkWorkshopStack/edx-build-aws-s3/Resource
-  MyRoleF48FFE04:
-    Type: AWS::IAM::Role
+  edxProjectUserBC265898:
+    Type: AWS::IAM::User
     Properties:
-      AssumeRolePolicyDocument:
-        Statement:
-          - Action: sts:AssumeRole
-            Effect: Allow
-            Principal:
-              Service: sns.amazonaws.com
-        Version: "2012-10-17"
+      Groups:
+        - Ref: Developers95C0CB5E
+      LoginProfile:
+        Password: "1234"
     Metadata:
-      aws:cdk:path: CdkWorkshopStack/MyRole/Resource
-  MyRoleDefaultPolicyA36BE1DD:
+      aws:cdk:path: CdkWorkshopStack/edxProjectUser/Resource
+  Developers95C0CB5E:
+    Type: AWS::IAM::Group
+    Metadata:
+      aws:cdk:path: CdkWorkshopStack/Developers/Resource
+  DevelopersDefaultPolicy57B1D584:
     Type: AWS::IAM::Policy
     Properties:
       PolicyDocument:
@@ -368,31 +369,11 @@ Resources:
             Effect: Allow
             Resource: "*"
         Version: "2012-10-17"
-      PolicyName: MyRoleDefaultPolicyA36BE1DD
-      Roles:
-        - Ref: MyRoleF48FFE04
-    Metadata:
-      aws:cdk:path: CdkWorkshopStack/MyRole/DefaultPolicy/Resource
-  edxProjectUserBC265898:
-    Type: AWS::IAM::User
-    Properties:
+      PolicyName: DevelopersDefaultPolicy57B1D584
       Groups:
         - Ref: Developers95C0CB5E
-      LoginProfile:
-        Password: "1234"
     Metadata:
-      aws:cdk:path: CdkWorkshopStack/edxProjectUser/Resource
-  Developers95C0CB5E:
-    Type: AWS::IAM::Group
-    Properties:
-      ManagedPolicyArns:
-        - Fn::Join:
-            - ""
-            - - "arn:"
-              - Ref: AWS::Partition
-              - :iam::aws:policy/AmazonEC2FullAccess
-    Metadata:
-      aws:cdk:path: CdkWorkshopStack/Developers/Resource
+      aws:cdk:path: CdkWorkshopStack/Developers/DefaultPolicy/Resource
   CDKMetadata:
     Type: AWS::CDK::Metadata
     Properties:
