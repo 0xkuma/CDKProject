@@ -65,7 +65,24 @@ export class CdkWorkshopStack extends cdk.Stack {
   }
 }
 
-//wget https://us-west-2-tcdev.s3.amazonaws.com/courses/AWS-100-ADG/v1.1.0/exercises/ex-s3-upload.zip
-//unzip ex-s3-upload.zip
-//sudo pip-3.6 install -r exercise-s3-upload/FlaskApp/requirements.txt
-//sudo pip-3.6 install boto3
+/*wget https://us-west-2-tcdev.s3.amazonaws.com/courses/AWS-100-ADG/v1.1.0/exercises/ex-s3-upload.zip
+unzip ex-s3-upload.zip
+sudo pip-3.6 install -r exercise-s3-upload/FlaskApp/requirements.txt
+sudo pip-3.6 install boto3
+
+#!/bin/bash
+sudo yum install python37 -y
+curl -O https://bootstrap.pypa.io/get-pip.py
+python3 get-pip.py --user
+wget https://s3-us-west-2.amazonaws.com/us-west-2-tcdev/courses/AWS-100-ADG/v1.1.0/exercises/ex-rekognition.zip
+unzip ex-rekognition.zip
+cd exercise-rekognition/FlaskApp
+python3 -m venv venv
+source venv/bin/activate
+pip install boto3
+pip install -r requirement
+pip install Pillow
+
+python3 application.py
+
+*/
