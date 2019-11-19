@@ -268,6 +268,65 @@ Resources:
         Ref: cdkVpcIGW472C7F82
     Metadata:
       aws:cdk:path: CdkWorkshopStack/cdk-Vpc/VPCGW
+  edxec2sgB3E5891F:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow 8080 access to ec2 instances
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          Description: Allow all outbound traffic by default
+          IpProtocol: "-1"
+      SecurityGroupIngress:
+        - CidrIp: 0.0.0.0/0
+          Description: Allow inbound 8080 port
+          FromPort: 8080
+          IpProtocol: tcp
+          ToPort: 8080
+      VpcId:
+        Ref: cdkVpc3BDA7A91
+    Metadata:
+      aws:cdk:path: CdkWorkshopStack/edx-ec2-sg/Resource
+  edxec2instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId:
+        Ref: SsmParameterValueawsserviceamiamazonlinuxlatestamzn2amihvmx8664gp2C96584B6F00A464EAD1953AFF4B05118Parameter
+      InstanceType: t2.micro
+      Monitoring: false
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: true
+          DeviceIndex: "0"
+          GroupSet:
+            - Fn::GetAtt:
+                - edxec2sgB3E5891F
+                - GroupId
+          SubnetId:
+            Ref: cdkVpcPublicSubnet1SubnetF181ADCD
+      Tags:
+        - Key: Name
+          Value: edx-instance
+      UserData:
+        Fn::Base64: >-
+          #!/bin/bash
+
+          /opt/aws/bin/cfn-init
+
+          --region us-west-2
+
+          --stack CdkWorkshopStack
+
+          --resource edxec2instance
+
+          sudo yum install python37 -y     curl -O https://bootstrap.pypa.io/get-pip.py     python3 get-pip.py --user     wget https://s3-us-west-2.amazonaws.com/us-west-2-tcdev/courses/AWS-100-ADG/v1.1.0/exercises/ex-rekognition.zip     unzip ex-rekognition.zip     cd exercise-rekognition/FlaskApp     python3 -m venv venv     source venv/bin/activate     pip install boto3     pip install -r requirement.txt     pip install Pillow     python3 application.py
+    Metadata:
+      aws:cdk:path: CdkWorkshopStack/edx-ec2-instance
+      AWS::CloudFormation::Init:
+        config:
+          commands:
+            test:
+              command: echo $STACK_NAME test
+              env:
+                STACK_NAME: CdkWorkshopStack
   edxbuildawss3Key1E5DD9BB:
     Type: AWS::KMS::Key
     Properties:
@@ -378,70 +437,8 @@ Resources:
     Type: AWS::CDK::Metadata
     Properties:
       Modules: aws-cdk=1.12.0,@aws-cdk/aws-cloudwatch=1.15.0,@aws-cdk/aws-ec2=1.15.0,@aws-cdk/aws-events=1.15.0,@aws-cdk/aws-iam=1.15.0,@aws-cdk/aws-kms=1.15.0,@aws-cdk/aws-s3=1.15.0,@aws-cdk/aws-ssm=1.15.0,@aws-cdk/core=1.15.0,@aws-cdk/cx-api=1.15.0,@aws-cdk/region-info=1.15.0,jsii-runtime=node.js/v10.16.3
-    Condition: CDKMetadataAvailable
-Conditions:
-  CDKMetadataAvailable:
-    Fn::Or:
-      - Fn::Or:
-          - Fn::Equals:
-              - Ref: AWS::Region
-              - ap-east-1
-          - Fn::Equals:
-              - Ref: AWS::Region
-              - ap-northeast-1
-          - Fn::Equals:
-              - Ref: AWS::Region
-              - ap-northeast-2
-          - Fn::Equals:
-              - Ref: AWS::Region
-              - ap-south-1
-          - Fn::Equals:
-              - Ref: AWS::Region
-              - ap-southeast-1
-          - Fn::Equals:
-              - Ref: AWS::Region
-              - ap-southeast-2
-          - Fn::Equals:
-              - Ref: AWS::Region
-              - ca-central-1
-          - Fn::Equals:
-              - Ref: AWS::Region
-              - cn-north-1
-          - Fn::Equals:
-              - Ref: AWS::Region
-              - cn-northwest-1
-          - Fn::Equals:
-              - Ref: AWS::Region
-              - eu-central-1
-      - Fn::Or:
-          - Fn::Equals:
-              - Ref: AWS::Region
-              - eu-north-1
-          - Fn::Equals:
-              - Ref: AWS::Region
-              - eu-west-1
-          - Fn::Equals:
-              - Ref: AWS::Region
-              - eu-west-2
-          - Fn::Equals:
-              - Ref: AWS::Region
-              - eu-west-3
-          - Fn::Equals:
-              - Ref: AWS::Region
-              - me-south-1
-          - Fn::Equals:
-              - Ref: AWS::Region
-              - sa-east-1
-          - Fn::Equals:
-              - Ref: AWS::Region
-              - us-east-1
-          - Fn::Equals:
-              - Ref: AWS::Region
-              - us-east-2
-          - Fn::Equals:
-              - Ref: AWS::Region
-              - us-west-1
-          - Fn::Equals:
-              - Ref: AWS::Region
-              - us-west-2
+Parameters:
+  SsmParameterValueawsserviceamiamazonlinuxlatestamzn2amihvmx8664gp2C96584B6F00A464EAD1953AFF4B05118Parameter:
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2
 
