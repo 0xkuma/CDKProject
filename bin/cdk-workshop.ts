@@ -6,6 +6,6 @@ import { CdkWorkshopStack } from '../lib/cdk-workshop-stack';
 const app = new cdk.App();
 new CdkWorkshopStack(app, 'CdkWorkshopStack', {
     env: {
-        region: "us-west-2"
+        region: "us-east-1"
     }
 });
