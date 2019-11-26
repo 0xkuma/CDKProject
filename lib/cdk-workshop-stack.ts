@@ -3,6 +3,7 @@ import { Tag } from '@aws-cdk/core';
 import ec2 = require('@aws-cdk/aws-ec2');
 import iam = require('@aws-cdk/aws-iam');
 import s3 = require('@aws-cdk/aws-s3');
+import rds = require('@aws-cdk/aws-rds')
 import { SubnetSelection } from '@aws-cdk/aws-ec2';
 
 export class CdkWorkshopStack extends cdk.Stack {
@@ -20,6 +21,11 @@ export class CdkWorkshopStack extends cdk.Stack {
           name: 'ApplicationPublic',
           cidrMask: 24,
         },
+        {
+          subnetType: ec2.SubnetType.ISOLATED,
+          name: 'Database',
+          cidrMask: 24,
+        },
         // {
         //   subnetType: ec2.SubnetType.PRIVATE,
         //   name: 'ApplicationPrivate',
@@ -35,6 +41,13 @@ export class CdkWorkshopStack extends cdk.Stack {
       encryption: s3.BucketEncryption.UNENCRYPTED,
       publicReadAccess: false,
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL
+    });
+
+    const rdsinstance = new rds.DatabaseInstance(this, 'Instance', {
+      engine: rds.DatabaseInstanceEngine.ORACLE_SE1,
+      instanceClass: ec2.InstanceType.of(ec2.InstanceClass.BURSTABLE2, ec2.InstanceSize.SMALL),
+      masterUsername: 'syscdk',
+      vpc
     });
 
     //Create Policy for user
@@ -111,8 +124,7 @@ export class CdkWorkshopStack extends cdk.Stack {
       instanceName: 'edx-ec2-instance',
       role: role,
       securityGroup: sg,
-      userData: userData,
-      availabilityZone:'us-east-1b'
+      userData: userData
     })
     bucket.grantReadWrite(instance)
 
