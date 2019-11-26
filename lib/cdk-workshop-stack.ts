@@ -3,7 +3,7 @@ import { Tag } from '@aws-cdk/core';
 import ec2 = require('@aws-cdk/aws-ec2');
 import iam = require('@aws-cdk/aws-iam');
 import s3 = require('@aws-cdk/aws-s3');
-import { Subnet } from '@aws-cdk/aws-ec2';
+import { SubnetSelection } from '@aws-cdk/aws-ec2';
 
 export class CdkWorkshopStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
@@ -111,7 +111,8 @@ export class CdkWorkshopStack extends cdk.Stack {
       instanceName: 'edx-ec2-instance',
       role: role,
       securityGroup: sg,
-      userData: userData
+      userData: userData,
+      availabilityZone:'us-east-1b'
     })
     bucket.grantReadWrite(instance)
 
