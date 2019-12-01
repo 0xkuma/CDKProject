@@ -1,10 +1,12 @@
-import cdk = require('@aws-cdk/core');
-import { Tag } from '@aws-cdk/core';
-import ec2 = require('@aws-cdk/aws-ec2');
-import iam = require('@aws-cdk/aws-iam');
-import s3 = require('@aws-cdk/aws-s3');
-import rds = require('@aws-cdk/aws-rds')
-import { SubnetSelection } from '@aws-cdk/aws-ec2';
+import cdk = require("@aws-cdk/core");
+import { Tag } from "@aws-cdk/core";
+import ec2 = require("@aws-cdk/aws-ec2");
+import iam = require("@aws-cdk/aws-iam");
+import s3 = require("@aws-cdk/aws-s3");
+import rds = require("@aws-cdk/aws-rds");
+import elbv2 = require("@aws-cdk/aws-elasticloadbalancingv2");
+import autoscaling = require("@aws-cdk/aws-autoscaling");
+import cognito = require("@aws-cdk/aws-cognito");
 
 export class CdkWorkshopStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
@@ -12,47 +14,52 @@ export class CdkWorkshopStack extends cdk.Stack {
     // The code that defines your stack goes here
 
     //Create VPC
-    const vpc = new ec2.Vpc(this, 'cdk-Vpc', {
+    const vpc = new ec2.Vpc(this, "cdk-Vpc", {
       maxAzs: 2,
-      cidr: '10.1.0.0/16',
+      cidr: "10.1.0.0/16",
       subnetConfiguration: [
         {
           subnetType: ec2.SubnetType.PUBLIC,
-          name: 'ApplicationPublic',
-          cidrMask: 24,
+          name: "ApplicationPublic",
+          cidrMask: 24
         },
         {
           subnetType: ec2.SubnetType.ISOLATED,
-          name: 'Database',
-          cidrMask: 24,
-        },
+          name: "Database",
+          cidrMask: 24
+        }
         // {
         //   subnetType: ec2.SubnetType.PRIVATE,
         //   name: 'ApplicationPrivate',
         //   cidrMask: 24,
         // }
-      ],
+      ]
     });
-    Tag.add(vpc, 'Name', 'edx-build-aws-vpc')
+    Tag.add(vpc, "Name", "edx-build-aws-vpc");
 
     //Create S3 Bucket
-    const bucket = new s3.Bucket(this, 'edx-build-aws-s3', {
+    const bucket = new s3.Bucket(this, "edx-build-aws-s3", {
       versioned: false,
       encryption: s3.BucketEncryption.UNENCRYPTED,
       publicReadAccess: false,
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL
     });
 
-    const rdsinstance = new rds.DatabaseInstance(this, 'Instance', {
-      engine: rds.DatabaseInstanceEngine.ORACLE_SE1,
-      instanceClass: ec2.InstanceType.of(ec2.InstanceClass.BURSTABLE2, ec2.InstanceSize.SMALL),
-      masterUsername: 'syscdk',
-      vpc
+    const rdsinstance = new rds.DatabaseInstance(this, "edx-photos-db", {
+      engine: rds.DatabaseInstanceEngine.MYSQL,
+      instanceClass: ec2.InstanceType.of(
+        ec2.InstanceClass.BURSTABLE2,
+        ec2.InstanceSize.SMALL
+      ),
+      masterUsername: "master",
+      masterUserPassword: new cdk.SecretValue("edxrdspasword"),
+      vpc,
+      databaseName: "Photos"
     });
 
     //Create Policy for user
     const policy = new iam.PolicyStatement({
-      resources: ['*'],
+      resources: ["*"],
       actions: [
         "iam:*",
         "rds:*",
@@ -83,52 +90,89 @@ export class CdkWorkshopStack extends cdk.Stack {
         "kms:ReEncryptTo",
         "kms:DescribeKey"
       ]
-    })
+    });
 
     //Create IAM User and Group
-    const role = new iam.Role(this, 'edxProjectRole', { assumedBy: new iam.ServicePrincipal('ec2.amazonaws.com') });
-    role.addToPolicy(policy)
+    const role = new iam.Role(this, "edxProjectRole", {
+      assumedBy: new iam.ServicePrincipal("ec2.amazonaws.com")
+    });
+    role.addToPolicy(policy);
 
     //Create SG
-    const sg = new ec2.SecurityGroup(this, 'edx-ec2-sg', {
+    const sg = new ec2.SecurityGroup(this, "edx-ec2-sg", {
       vpc,
-      description: 'Allow 8080 access to ec2 instances',
+      description: "Allow 8080 access to ec2 instances",
       allowAllOutbound: true
-    })
-    sg.connections.allowFromAnyIpv4(ec2.Port.tcp(8080), 'Allow inbound 8080 port')
+    });
+    sg.connections.allowFromAnyIpv4(
+      ec2.Port.tcp(8080),
+      "Allow inbound 8080 port"
+    );
 
-    const awsAMI = new ec2.AmazonLinuxImage({ generation: ec2.AmazonLinuxGeneration.AMAZON_LINUX_2 });
+    const awsAMI = new ec2.AmazonLinuxImage({
+      generation: ec2.AmazonLinuxGeneration.AMAZON_LINUX_2
+    });
 
     let userData = ec2.UserData.forLinux();
     userData.addCommands(
       "sudo yum install python37 -y",
       "sudo yum install python-pip -y",
-      "wget https://s3-us-west-2.amazonaws.com/us-west-2-tcdev/courses/AWS-100-ADG/v1.1.0/exercises/ex-rekognition.zip",
-      "unzip ex-rekognition.zip",
-      "cd exercise-rekognition/FlaskApp",
+      "wget https://s3-us-west-2.amazonaws.com/us-west-2-tcdev/courses/AWS-100-ADG/v1.1.0/exercises/ex-rds.zip",
+      "unzip ex-rds.zip",
+      "cd exercise-rds/",
       "python3 -m venv venv",
       "source venv/bin/activate",
       "pip3 install boto3",
-      "pip3 install -r requirements.txt",
+      "pip3 install -r FlaskApp/requirements.txt",
       "pip3 install Pillow",
+      "pip3 install mysql-connector",
+      "python3 exercise-rds/SetupScripts/database_create_tables.py",
+      rdsinstance.dbInstanceEndpointAddress,
+      "master",
+      "edxrdspasword",
+      "Photos",
+      "edxwebuserpassword",
+      "export DATABASE_HOST=" + rdsinstance.dbInstanceEndpointAddress,
+      "export DATABASE_USER=web_user",
+      "export DATABASE_PASSWORD=edxrdspasword",
+      "export DATABASE_DB_NAME=Photos",
       "export PHOTOS_BUCKET=" + bucket.bucketName,
       "export FLASK_SECRET=kuma",
       "export AWS_DEFAULT_REGION=us-east-1",
-      "python3 application.py");
+      "python3 exercise-rds/FlaskApp/application.py"
+    );
 
-    let instance = new ec2.Instance(this, 'edx-ec2-instance', {
-      vpc: vpc,
-      instanceType: new ec2.InstanceType('t2.micro'),
+    //Create ELB
+    const lb = new elbv2.ApplicationLoadBalancer(this, "photos-alb", {
+      vpc,
+      internetFacing: true
+    });
+
+    const listener = lb.addListener("Listener", {
+      port: 8080,
+      open: true
+    });
+
+    //Create Auto Scaling Group
+    const asg = new autoscaling.AutoScalingGroup(this, "ASG", {
+      vpc,
+      instanceType: ec2.InstanceType.of(
+        ec2.InstanceClass.BURSTABLE2,
+        ec2.InstanceSize.MICRO
+      ),
       machineImage: awsAMI,
       allowAllOutbound: true,
-      instanceName: 'edx-ec2-instance',
       role: role,
-      securityGroup: sg,
-      userData: userData
-    })
-    bucket.grantReadWrite(instance)
+      userData: userData,
+      minCapacity: 2,
+      maxCapacity: 3
+    });
 
+    listener.addTargets("ApplicationFleet", {
+      port: 8080,
+      targets: [asg]
+    });
+
+    bucket.grantReadWrite(asg);
   }
-
 }
-
