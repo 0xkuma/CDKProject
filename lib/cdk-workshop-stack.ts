@@ -4,7 +4,7 @@ import ec2 = require("@aws-cdk/aws-ec2");
 import iam = require("@aws-cdk/aws-iam");
 import s3 = require("@aws-cdk/aws-s3");
 import rds = require("@aws-cdk/aws-rds");
-import elbv2 = require("@aws-cdk/aws-elasticloadbalancingv2");
+import elb = require("@aws-cdk/aws-elasticloadbalancing");
 import autoscaling = require("@aws-cdk/aws-autoscaling");
 import cognito = require("@aws-cdk/aws-cognito");
 
@@ -143,14 +143,19 @@ export class CdkWorkshopStack extends cdk.Stack {
     );
 
     //Create ELB
-    const lb = new elbv2.ApplicationLoadBalancer(this, "photos-alb", {
+    const lb = new elb.LoadBalancer(this, "photos-alb", {
       vpc,
-      internetFacing: true
+      internetFacing: true,
+      healthCheck: {
+        port: 8080
+      },
+      crossZone: true
     });
 
-    const listener = lb.addListener("Listener", {
-      port: 8080,
-      open: true
+    lb.addListener({
+      internalPort: 8080,
+      externalPort: 8080,
+      externalProtocol: elb.LoadBalancingProtocol.HTTP
     });
 
     //Create Auto Scaling Group
@@ -168,11 +173,25 @@ export class CdkWorkshopStack extends cdk.Stack {
       maxCapacity: 3
     });
 
-    listener.addTargets("ApplicationFleet", {
-      port: 8080,
-      targets: [asg]
-    });
+    lb.addTarget(asg);
 
     bucket.grantReadWrite(asg);
+
+    //Create Cognito
+    const userPool: cognito.UserPool = new cognito.UserPool(
+      this,
+      "photos-pool",
+      {
+        signInType: cognito.SignInType.EMAIL_OR_PHONE,
+        autoVerifiedAttributes: [cognito.UserPoolAttribute.EMAIL]
+      }
+    );
+
+    new cognito.UserPoolClient(this, "WebsiteClient", {
+      userPool: userPool,
+      generateSecret: true,
+      enabledAuthFlows: [cognito.AuthFlow.USER_PASSWORD]
+    });
+
   }
 }
