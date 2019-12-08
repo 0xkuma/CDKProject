@@ -3,10 +3,17 @@ import { Tag } from "@aws-cdk/core";
 import ec2 = require("@aws-cdk/aws-ec2");
 import iam = require("@aws-cdk/aws-iam");
 import s3 = require("@aws-cdk/aws-s3");
+import s3n = require("@aws-cdk/aws-s3-notifications");
 import rds = require("@aws-cdk/aws-rds");
 import elb = require("@aws-cdk/aws-elasticloadbalancing");
 import autoscaling = require("@aws-cdk/aws-autoscaling");
 import cognito = require("@aws-cdk/aws-cognito");
+import sns = require("@aws-cdk/aws-sns");
+import subs = require("@aws-cdk/aws-sns-subscriptions");
+import sqs = require("@aws-cdk/aws-sqs");
+import _lambda = require("@aws-cdk/aws-lambda");
+import { SnsEventSource } from "@aws-cdk/aws-lambda-event-sources";
+import path = require("path");
 
 export class CdkWorkshopStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
@@ -45,19 +52,7 @@ export class CdkWorkshopStack extends cdk.Stack {
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL
     });
 
-    const rdsinstance = new rds.DatabaseInstance(this, "edx-photos-db", {
-      engine: rds.DatabaseInstanceEngine.MYSQL,
-      instanceClass: ec2.InstanceType.of(
-        ec2.InstanceClass.BURSTABLE2,
-        ec2.InstanceSize.SMALL
-      ),
-      masterUsername: "master",
-      masterUserPassword: new cdk.SecretValue("edxrdspasword"),
-      vpc,
-      databaseName: "Photos"
-    });
-
-    //Create Policy for user
+    //Create Policy for role
     const policy = new iam.PolicyStatement({
       resources: ["*"],
       actions: [
@@ -108,6 +103,69 @@ export class CdkWorkshopStack extends cdk.Stack {
       ec2.Port.tcp(8080),
       "Allow inbound 8080 port"
     );
+
+    //Create Lambda Function
+    const statement = new iam.PolicyStatement();
+    statement.addArnPrincipal(
+      "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
+    );
+    statement.addArnPrincipal(
+      "arn:aws:iam::aws:policy/AmazonRekognitionReadOnlyAccess"
+    );
+    statement.addArnPrincipal("arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess");
+
+    const _lambdaRole = new iam.Role(this, "labels-lambda-role", {
+      assumedBy: new iam.ServicePrincipal("lambda.amazonaws.com")
+    });
+    _lambdaRole.addToPolicy(statement);
+
+    const _lambdaSG = new ec2.SecurityGroup(this, "labels-lambda-sg", {
+      vpc,
+      description: "lambda function sg"
+    });
+
+    const fn = new _lambda.Function(this, "MyFunction", {
+      runtime: _lambda.Runtime.PYTHON_3_8,
+      handler: "lambda_function.lambda_handler",
+      code: _lambda.Code.fromAsset(
+        path.join(__dirname, "./lambda/lambda_function")
+      ),
+      role: _lambdaRole,
+      vpc: vpc,
+      securityGroup: _lambdaSG,
+      tracing: _lambda.Tracing.ACTIVE
+    });
+
+    //Create sqs
+    const quene = new sqs.Queue(this, "uploads-queue");
+
+    //Create sns
+    const myTopic = new sns.Topic(this, "uploads-topic");
+    bucket.addEventNotification(
+      s3.EventType.OBJECT_CREATED_PUT,
+      new s3n.SnsDestination(myTopic)
+    );
+
+    myTopic.addSubscription(
+      new subs.EmailSubscription("180354210@stu.vtc.edu.hk")
+    );
+
+    myTopic.addSubscription(new subs.SqsSubscription(quene));
+
+    fn.addEventSource(new SnsEventSource(myTopic));
+
+    const rdsinstance = new rds.DatabaseInstance(this, "edx-photos-db", {
+      engine: rds.DatabaseInstanceEngine.MYSQL,
+      instanceClass: ec2.InstanceType.of(
+        ec2.InstanceClass.BURSTABLE2,
+        ec2.InstanceSize.SMALL
+      ),
+      masterUsername: "master",
+      masterUserPassword: new cdk.SecretValue("edxrdspasword"),
+      vpc,
+      databaseName: "Photos",
+      securityGroups: [_lambdaSG]
+    });
 
     const awsAMI = new ec2.AmazonLinuxImage({
       generation: ec2.AmazonLinuxGeneration.AMAZON_LINUX_2
@@ -176,6 +234,7 @@ export class CdkWorkshopStack extends cdk.Stack {
     lb.addTarget(asg);
 
     bucket.grantReadWrite(asg);
+    bucket.grantReadWrite(fn);
 
     //Create Cognito
     const userPool: cognito.UserPool = new cognito.UserPool(
@@ -192,6 +251,5 @@ export class CdkWorkshopStack extends cdk.Stack {
       generateSecret: true,
       enabledAuthFlows: [cognito.AuthFlow.USER_PASSWORD]
     });
-
   }
 }

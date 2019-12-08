@@ -1,0 +1,921 @@
+Resources:
+  cdkVpc3BDA7A91:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.1.0.0/16
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      InstanceTenancy: default
+      Tags:
+        - Key: Name
+          Value: edx-build-aws-vpc
+    Metadata:
+      aws:cdk:path: dev/cdk-Vpc/Resource
+  cdkVpcApplicationPublicSubnet1SubnetABA33F78:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: 10.1.0.0/24
+      VpcId:
+        Ref: cdkVpc3BDA7A91
+      AvailabilityZone:
+        Fn::Select:
+          - 0
+          - Fn::GetAZs: ""
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: dev/cdk-Vpc/ApplicationPublicSubnet1
+        - Key: aws-cdk:subnet-name
+          Value: ApplicationPublic
+        - Key: aws-cdk:subnet-type
+          Value: Public
+    Metadata:
+      aws:cdk:path: dev/cdk-Vpc/ApplicationPublicSubnet1/Subnet
+  cdkVpcApplicationPublicSubnet1RouteTableDA2B677F:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: cdkVpc3BDA7A91
+      Tags:
+        - Key: Name
+          Value: dev/cdk-Vpc/ApplicationPublicSubnet1
+    Metadata:
+      aws:cdk:path: dev/cdk-Vpc/ApplicationPublicSubnet1/RouteTable
+  cdkVpcApplicationPublicSubnet1RouteTableAssociationCB159642:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId:
+        Ref: cdkVpcApplicationPublicSubnet1RouteTableDA2B677F
+      SubnetId:
+        Ref: cdkVpcApplicationPublicSubnet1SubnetABA33F78
+    Metadata:
+      aws:cdk:path: dev/cdk-Vpc/ApplicationPublicSubnet1/RouteTableAssociation
+  cdkVpcApplicationPublicSubnet1DefaultRoute13BB5655:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId:
+        Ref: cdkVpcApplicationPublicSubnet1RouteTableDA2B677F
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId:
+        Ref: cdkVpcIGW472C7F82
+    DependsOn:
+      - cdkVpcVPCGW3EC4BD15
+    Metadata:
+      aws:cdk:path: dev/cdk-Vpc/ApplicationPublicSubnet1/DefaultRoute
+  cdkVpcApplicationPublicSubnet2Subnet9D205005:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: 10.1.1.0/24
+      VpcId:
+        Ref: cdkVpc3BDA7A91
+      AvailabilityZone:
+        Fn::Select:
+          - 1
+          - Fn::GetAZs: ""
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: dev/cdk-Vpc/ApplicationPublicSubnet2
+        - Key: aws-cdk:subnet-name
+          Value: ApplicationPublic
+        - Key: aws-cdk:subnet-type
+          Value: Public
+    Metadata:
+      aws:cdk:path: dev/cdk-Vpc/ApplicationPublicSubnet2/Subnet
+  cdkVpcApplicationPublicSubnet2RouteTable47875601:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: cdkVpc3BDA7A91
+      Tags:
+        - Key: Name
+          Value: dev/cdk-Vpc/ApplicationPublicSubnet2
+    Metadata:
+      aws:cdk:path: dev/cdk-Vpc/ApplicationPublicSubnet2/RouteTable
+  cdkVpcApplicationPublicSubnet2RouteTableAssociation2E7D5707:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId:
+        Ref: cdkVpcApplicationPublicSubnet2RouteTable47875601
+      SubnetId:
+        Ref: cdkVpcApplicationPublicSubnet2Subnet9D205005
+    Metadata:
+      aws:cdk:path: dev/cdk-Vpc/ApplicationPublicSubnet2/RouteTableAssociation
+  cdkVpcApplicationPublicSubnet2DefaultRoute4F874009:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId:
+        Ref: cdkVpcApplicationPublicSubnet2RouteTable47875601
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId:
+        Ref: cdkVpcIGW472C7F82
+    DependsOn:
+      - cdkVpcVPCGW3EC4BD15
+    Metadata:
+      aws:cdk:path: dev/cdk-Vpc/ApplicationPublicSubnet2/DefaultRoute
+  cdkVpcDatabaseSubnet1Subnet7673F5EE:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: 10.1.2.0/24
+      VpcId:
+        Ref: cdkVpc3BDA7A91
+      AvailabilityZone:
+        Fn::Select:
+          - 0
+          - Fn::GetAZs: ""
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: dev/cdk-Vpc/DatabaseSubnet1
+        - Key: aws-cdk:subnet-name
+          Value: Database
+        - Key: aws-cdk:subnet-type
+          Value: Isolated
+    Metadata:
+      aws:cdk:path: dev/cdk-Vpc/DatabaseSubnet1/Subnet
+  cdkVpcDatabaseSubnet1RouteTable1E95F97D:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: cdkVpc3BDA7A91
+      Tags:
+        - Key: Name
+          Value: dev/cdk-Vpc/DatabaseSubnet1
+    Metadata:
+      aws:cdk:path: dev/cdk-Vpc/DatabaseSubnet1/RouteTable
+  cdkVpcDatabaseSubnet1RouteTableAssociation9FBF1782:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId:
+        Ref: cdkVpcDatabaseSubnet1RouteTable1E95F97D
+      SubnetId:
+        Ref: cdkVpcDatabaseSubnet1Subnet7673F5EE
+    Metadata:
+      aws:cdk:path: dev/cdk-Vpc/DatabaseSubnet1/RouteTableAssociation
+  cdkVpcDatabaseSubnet2Subnet63ECDEF1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: 10.1.3.0/24
+      VpcId:
+        Ref: cdkVpc3BDA7A91
+      AvailabilityZone:
+        Fn::Select:
+          - 1
+          - Fn::GetAZs: ""
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: dev/cdk-Vpc/DatabaseSubnet2
+        - Key: aws-cdk:subnet-name
+          Value: Database
+        - Key: aws-cdk:subnet-type
+          Value: Isolated
+    Metadata:
+      aws:cdk:path: dev/cdk-Vpc/DatabaseSubnet2/Subnet
+  cdkVpcDatabaseSubnet2RouteTableF1E68678:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: cdkVpc3BDA7A91
+      Tags:
+        - Key: Name
+          Value: dev/cdk-Vpc/DatabaseSubnet2
+    Metadata:
+      aws:cdk:path: dev/cdk-Vpc/DatabaseSubnet2/RouteTable
+  cdkVpcDatabaseSubnet2RouteTableAssociation65866140:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId:
+        Ref: cdkVpcDatabaseSubnet2RouteTableF1E68678
+      SubnetId:
+        Ref: cdkVpcDatabaseSubnet2Subnet63ECDEF1
+    Metadata:
+      aws:cdk:path: dev/cdk-Vpc/DatabaseSubnet2/RouteTableAssociation
+  cdkVpcIGW472C7F82:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: edx-build-aws-vpc
+    Metadata:
+      aws:cdk:path: dev/cdk-Vpc/IGW
+  cdkVpcVPCGW3EC4BD15:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId:
+        Ref: cdkVpc3BDA7A91
+      InternetGatewayId:
+        Ref: cdkVpcIGW472C7F82
+    Metadata:
+      aws:cdk:path: dev/cdk-Vpc/VPCGW
+  edxbuildawss39543392C:
+    Type: AWS::S3::Bucket
+    Properties:
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain
+    Metadata:
+      aws:cdk:path: dev/edx-build-aws-s3/Resource
+  edxbuildawss3NotificationsDE197EC5:
+    Type: Custom::S3BucketNotifications
+    Properties:
+      ServiceToken:
+        Fn::GetAtt:
+          - BucketNotificationsHandler050a0587b7544547bf325f094a3db8347ECC3691
+          - Arn
+      BucketName:
+        Ref: edxbuildawss39543392C
+      NotificationConfiguration:
+        TopicConfigurations:
+          - Events:
+              - s3:ObjectCreated:Put
+            TopicArn:
+              Ref: uploadstopicBB4CA8DF
+    DependsOn:
+      - uploadstopic180354210stuvtceduhk5BBCA01E
+      - uploadstopicPolicy8AC1769B
+      - uploadstopicBB4CA8DF
+    Metadata:
+      aws:cdk:path: dev/edx-build-aws-s3/Notifications/Resource
+  edxProjectRoleEC195CF4:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+        Version: "2012-10-17"
+    Metadata:
+      aws:cdk:path: dev/edxProjectRole/Resource
+  edxProjectRoleDefaultPolicy472F68EB:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - iam:*
+              - rds:*
+              - sns:*
+              - cloudformation:*
+              - rekognition:*
+              - ec2:*
+              - cognito-idp:*
+              - sqs:*
+              - xray:*
+              - s3:*
+              - elasticloadbalancing:*
+              - cloud9:*
+              - lambda:*
+              - tag:GetResources
+              - logs:*
+              - kms:ListKeyPolicies
+              - kms:GenerateRandom
+              - kms:ListRetirableGrants
+              - kms:GetKeyPolicy
+              - kms:ListResourceTags
+              - kms:ReEncryptFrom
+              - kms:ListGrants
+              - kms:GetParametersForImport
+              - kms:ListKeys
+              - kms:GetKeyRotationStatus
+              - kms:ListAliases
+              - kms:ReEncryptTo
+              - kms:DescribeKey
+            Effect: Allow
+            Resource: "*"
+          - Action:
+              - s3:GetObject*
+              - s3:GetBucket*
+              - s3:List*
+              - s3:DeleteObject*
+              - s3:PutObject*
+              - s3:Abort*
+            Effect: Allow
+            Resource:
+              - Fn::GetAtt:
+                  - edxbuildawss39543392C
+                  - Arn
+              - Fn::Join:
+                  - ""
+                  - - Fn::GetAtt:
+                        - edxbuildawss39543392C
+                        - Arn
+                    - /*
+        Version: "2012-10-17"
+      PolicyName: edxProjectRoleDefaultPolicy472F68EB
+      Roles:
+        - Ref: edxProjectRoleEC195CF4
+    Metadata:
+      aws:cdk:path: dev/edxProjectRole/DefaultPolicy/Resource
+  edxec2sgB3E5891F:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow 8080 access to ec2 instances
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          Description: Allow all outbound traffic by default
+          IpProtocol: "-1"
+      SecurityGroupIngress:
+        - CidrIp: 0.0.0.0/0
+          Description: Allow inbound 8080 port
+          FromPort: 8080
+          IpProtocol: tcp
+          ToPort: 8080
+      VpcId:
+        Ref: cdkVpc3BDA7A91
+    Metadata:
+      aws:cdk:path: dev/edx-ec2-sg/Resource
+  labelslambdaroleC46B17D8:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+        Version: "2012-10-17"
+    Metadata:
+      aws:cdk:path: dev/labels-lambda-role/Resource
+  labelslambdaroleDefaultPolicy26C8134A:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS:
+                - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+                - arn:aws:iam::aws:policy/AmazonRekognitionReadOnlyAccess
+                - arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
+          - Action:
+              - xray:PutTraceSegments
+              - xray:PutTelemetryRecords
+            Effect: Allow
+            Resource: "*"
+          - Action:
+              - s3:GetObject*
+              - s3:GetBucket*
+              - s3:List*
+              - s3:DeleteObject*
+              - s3:PutObject*
+              - s3:Abort*
+            Effect: Allow
+            Resource:
+              - Fn::GetAtt:
+                  - edxbuildawss39543392C
+                  - Arn
+              - Fn::Join:
+                  - ""
+                  - - Fn::GetAtt:
+                        - edxbuildawss39543392C
+                        - Arn
+                    - /*
+        Version: "2012-10-17"
+      PolicyName: labelslambdaroleDefaultPolicy26C8134A
+      Roles:
+        - Ref: labelslambdaroleC46B17D8
+    Metadata:
+      aws:cdk:path: dev/labels-lambda-role/DefaultPolicy/Resource
+  labelslambdasg185D907C:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: lambda function sg
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          Description: Allow all outbound traffic by default
+          IpProtocol: "-1"
+      VpcId:
+        Ref: cdkVpc3BDA7A91
+    Metadata:
+      aws:cdk:path: dev/labels-lambda-sg/Resource
+  MyFunction3BAA72D1:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket:
+          Ref: AssetParameters2977cda617cace92e196f23e071eb6b8eefbae42ed35487777deaba1e541b964S3BucketA40AE0EC
+        S3Key:
+          Fn::Join:
+            - ""
+            - - Fn::Select:
+                  - 0
+                  - Fn::Split:
+                      - "||"
+                      - Ref: AssetParameters2977cda617cace92e196f23e071eb6b8eefbae42ed35487777deaba1e541b964S3VersionKeyB260165E
+              - Fn::Select:
+                  - 1
+                  - Fn::Split:
+                      - "||"
+                      - Ref: AssetParameters2977cda617cace92e196f23e071eb6b8eefbae42ed35487777deaba1e541b964S3VersionKeyB260165E
+      Handler: lambda_function.lambda_handler
+      Role:
+        Fn::GetAtt:
+          - labelslambdaroleC46B17D8
+          - Arn
+      Runtime: python3.8
+      TracingConfig:
+        Mode: Active
+      VpcConfig:
+        SecurityGroupIds:
+          - Fn::GetAtt:
+              - labelslambdasg185D907C
+              - GroupId
+        SubnetIds:
+          - Ref: cdkVpcDatabaseSubnet1Subnet7673F5EE
+          - Ref: cdkVpcDatabaseSubnet2Subnet63ECDEF1
+    DependsOn:
+      - labelslambdaroleDefaultPolicy26C8134A
+      - labelslambdaroleC46B17D8
+    Metadata:
+      aws:cdk:path: dev/MyFunction/Resource
+      aws:asset:path: asset.2977cda617cace92e196f23e071eb6b8eefbae42ed35487777deaba1e541b964
+      aws:asset:property: Code
+  MyFunctionAllowInvokedevuploadstopicEF723F529E74480C:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+          - MyFunction3BAA72D1
+          - Arn
+      Principal: sns.amazonaws.com
+      SourceArn:
+        Ref: uploadstopicBB4CA8DF
+    Metadata:
+      aws:cdk:path: dev/MyFunction/AllowInvoke:devuploadstopicEF723F52
+  MyFunctionuploadstopicC010C254:
+    Type: AWS::SNS::Subscription
+    Properties:
+      Protocol: lambda
+      TopicArn:
+        Ref: uploadstopicBB4CA8DF
+      Endpoint:
+        Fn::GetAtt:
+          - MyFunction3BAA72D1
+          - Arn
+    Metadata:
+      aws:cdk:path: dev/MyFunction/uploads-topic/Resource
+  uploadsqueue60B17D83:
+    Type: AWS::SQS::Queue
+    Metadata:
+      aws:cdk:path: dev/uploads-queue/Resource
+  uploadsqueuePolicy6A5280B0:
+    Type: AWS::SQS::QueuePolicy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action: sqs:SendMessage
+            Condition:
+              ArnEquals:
+                aws:SourceArn:
+                  Ref: uploadstopicBB4CA8DF
+            Effect: Allow
+            Principal:
+              Service: sns.amazonaws.com
+            Resource:
+              Fn::GetAtt:
+                - uploadsqueue60B17D83
+                - Arn
+        Version: "2012-10-17"
+      Queues:
+        - Ref: uploadsqueue60B17D83
+    Metadata:
+      aws:cdk:path: dev/uploads-queue/Policy/Resource
+  uploadsqueuedevuploadstopicEF723F5212A1C19A:
+    Type: AWS::SNS::Subscription
+    Properties:
+      Protocol: sqs
+      TopicArn:
+        Ref: uploadstopicBB4CA8DF
+      Endpoint:
+        Fn::GetAtt:
+          - uploadsqueue60B17D83
+          - Arn
+    Metadata:
+      aws:cdk:path: dev/uploads-queue/devuploadstopicEF723F52/Resource
+  uploadstopicBB4CA8DF:
+    Type: AWS::SNS::Topic
+    Metadata:
+      aws:cdk:path: dev/uploads-topic/Resource
+  uploadstopicPolicy8AC1769B:
+    Type: AWS::SNS::TopicPolicy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action: sns:Publish
+            Condition:
+              ArnLike:
+                aws:SourceArn:
+                  Fn::GetAtt:
+                    - edxbuildawss39543392C
+                    - Arn
+            Effect: Allow
+            Principal:
+              Service: s3.amazonaws.com
+            Resource:
+              Ref: uploadstopicBB4CA8DF
+            Sid: "0"
+        Version: "2012-10-17"
+      Topics:
+        - Ref: uploadstopicBB4CA8DF
+    Metadata:
+      aws:cdk:path: dev/uploads-topic/Policy/Resource
+  uploadstopic180354210stuvtceduhk5BBCA01E:
+    Type: AWS::SNS::Subscription
+    Properties:
+      Protocol: email
+      TopicArn:
+        Ref: uploadstopicBB4CA8DF
+      Endpoint: 180354210@stu.vtc.edu.hk
+    Metadata:
+      aws:cdk:path: dev/uploads-topic/180354210@stu.vtc.edu.hk/Resource
+  BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleB6FB88EC:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+        Version: "2012-10-17"
+      ManagedPolicyArns:
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+    Metadata:
+      aws:cdk:path: dev/BucketNotificationsHandler050a0587b7544547bf325f094a3db834/Role/Resource
+  BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleDefaultPolicy2CF63D36:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action: s3:PutBucketNotification
+            Effect: Allow
+            Resource: "*"
+        Version: "2012-10-17"
+      PolicyName: BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleDefaultPolicy2CF63D36
+      Roles:
+        - Ref: BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleB6FB88EC
+    Metadata:
+      aws:cdk:path: dev/BucketNotificationsHandler050a0587b7544547bf325f094a3db834/Role/DefaultPolicy/Resource
+  BucketNotificationsHandler050a0587b7544547bf325f094a3db8347ECC3691:
+    Type: AWS::Lambda::Function
+    Properties:
+      Description: AWS CloudFormation handler for "Custom::S3BucketNotifications" resources (@aws-cdk/aws-s3)
+      Code:
+        ZipFile: >-
+          exports.handler = (event, context) => {
+              const s3 = new (require('aws-sdk').S3)();
+              const https = require("https");
+              const url = require("url");
+              log(JSON.stringify(event, undefined, 2));
+              const props = event.ResourceProperties;
+              if (event.RequestType === 'Delete') {
+                  props.NotificationConfiguration = {}; // this is how you clean out notifications
+              }
+              const req = {
+                  Bucket: props.BucketName,
+                  NotificationConfiguration: props.NotificationConfiguration
+              };
+              return s3.putBucketNotificationConfiguration(req, (err, data) => {
+                  log({ err, data });
+                  if (err) {
+                      return submitResponse("FAILED", err.message + `\nMore information in CloudWatch Log Stream: ${context.logStreamName}`);
+                  }
+                  else {
+                      return submitResponse("SUCCESS");
+                  }
+              });
+              function log(obj) {
+                  console.error(event.RequestId, event.StackId, event.LogicalResourceId, obj);
+              }
+              // tslint:disable-next-line:max-line-length
+              // adapted from https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-lambda-function-code.html#cfn-lambda-function-code-cfnresponsemodule
+              // to allow sending an error messge as a reason.
+              function submitResponse(responseStatus, reason) {
+                  const responseBody = JSON.stringify({
+                      Status: responseStatus,
+                      Reason: reason || "See the details in CloudWatch Log Stream: " + context.logStreamName,
+                      PhysicalResourceId: event.PhysicalResourceId || event.LogicalResourceId,
+                      StackId: event.StackId,
+                      RequestId: event.RequestId,
+                      LogicalResourceId: event.LogicalResourceId,
+                      NoEcho: false,
+                  });
+                  log({ responseBody });
+                  const parsedUrl = url.parse(event.ResponseURL);
+                  const options = {
+                      hostname: parsedUrl.hostname,
+                      port: 443,
+                      path: parsedUrl.path,
+                      method: "PUT",
+                      headers: {
+                          "content-type": "",
+                          "content-length": responseBody.length
+                      }
+                  };
+                  const request = https.request(options, (r) => {
+                      log({ statusCode: r.statusCode, statusMessage: r.statusMessage });
+                      context.done();
+                  });
+                  request.on("error", (error) => {
+                      log({ sendError: error });
+                      context.done();
+                  });
+                  request.write(responseBody);
+                  request.end();
+              }
+          };
+      Handler: index.handler
+      Role:
+        Fn::GetAtt:
+          - BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleB6FB88EC
+          - Arn
+      Runtime: nodejs10.x
+      Timeout: 300
+    DependsOn:
+      - BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleDefaultPolicy2CF63D36
+      - BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleB6FB88EC
+    Metadata:
+      aws:cdk:path: dev/BucketNotificationsHandler050a0587b7544547bf325f094a3db834/Resource
+  edxphotosdbSubnetGroup02F332B9:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Subnet group for edx-photos-db database
+      SubnetIds:
+        - Ref: cdkVpcDatabaseSubnet1Subnet7673F5EE
+        - Ref: cdkVpcDatabaseSubnet2Subnet63ECDEF1
+    Metadata:
+      aws:cdk:path: dev/edx-photos-db/SubnetGroup
+  edxphotosdb4A08F088:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBInstanceClass: db.t2.small
+      AllocatedStorage: "100"
+      CopyTagsToSnapshot: true
+      DBName: Photos
+      DBSubnetGroupName:
+        Ref: edxphotosdbSubnetGroup02F332B9
+      DeletionProtection: true
+      Engine: mysql
+      MasterUsername: master
+      MasterUserPassword: edxrdspasword
+      StorageType: gp2
+      VPCSecurityGroups:
+        - Fn::GetAtt:
+            - labelslambdasg185D907C
+            - GroupId
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain
+    Metadata:
+      aws:cdk:path: dev/edx-photos-db/Resource
+  photosalbSecurityGroup4667EAE7:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: dev/photos-alb/SecurityGroup
+      SecurityGroupIngress:
+        - CidrIp: 0.0.0.0/0
+          Description: Default rule allow on 8080
+          FromPort: 8080
+          IpProtocol: tcp
+          ToPort: 8080
+      VpcId:
+        Ref: cdkVpc3BDA7A91
+    Metadata:
+      aws:cdk:path: dev/photos-alb/SecurityGroup/Resource
+  photosalbSecurityGrouptodevASGInstanceSecurityGroup805ED2D18080D245B993:
+    Type: AWS::EC2::SecurityGroupEgress
+    Properties:
+      GroupId:
+        Fn::GetAtt:
+          - photosalbSecurityGroup4667EAE7
+          - GroupId
+      IpProtocol: tcp
+      Description: Port 8080 LB to fleet
+      DestinationSecurityGroupId:
+        Fn::GetAtt:
+          - ASGInstanceSecurityGroup0525485D
+          - GroupId
+      FromPort: 8080
+      ToPort: 8080
+    Metadata:
+      aws:cdk:path: dev/photos-alb/SecurityGroup/to devASGInstanceSecurityGroup805ED2D1:8080
+  photosalb99D4657F:
+    Type: AWS::ElasticLoadBalancing::LoadBalancer
+    Properties:
+      Listeners:
+        - InstancePort: "8080"
+          InstanceProtocol: http
+          LoadBalancerPort: "8080"
+          Protocol: http
+      CrossZone: true
+      HealthCheck:
+        HealthyThreshold: "2"
+        Interval: "30"
+        Target: TCP:8080
+        Timeout: "5"
+        UnhealthyThreshold: "5"
+      Scheme: internet-facing
+      SecurityGroups:
+        - Fn::GetAtt:
+            - photosalbSecurityGroup4667EAE7
+            - GroupId
+      Subnets:
+        - Ref: cdkVpcApplicationPublicSubnet1SubnetABA33F78
+        - Ref: cdkVpcApplicationPublicSubnet2Subnet9D205005
+    DependsOn:
+      - cdkVpcApplicationPublicSubnet1DefaultRoute13BB5655
+      - cdkVpcApplicationPublicSubnet2DefaultRoute4F874009
+    Metadata:
+      aws:cdk:path: dev/photos-alb/Resource
+  ASGInstanceSecurityGroup0525485D:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: dev/ASG/InstanceSecurityGroup
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          Description: Allow all outbound traffic by default
+          IpProtocol: "-1"
+      Tags:
+        - Key: Name
+          Value: dev/ASG
+      VpcId:
+        Ref: cdkVpc3BDA7A91
+    Metadata:
+      aws:cdk:path: dev/ASG/InstanceSecurityGroup/Resource
+  ASGInstanceSecurityGroupfromdevphotosalbSecurityGroup7D4E18D08080F1EE25DF:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      IpProtocol: tcp
+      Description: Port 8080 LB to fleet
+      FromPort: 8080
+      GroupId:
+        Fn::GetAtt:
+          - ASGInstanceSecurityGroup0525485D
+          - GroupId
+      SourceSecurityGroupId:
+        Fn::GetAtt:
+          - photosalbSecurityGroup4667EAE7
+          - GroupId
+      ToPort: 8080
+    Metadata:
+      aws:cdk:path: dev/ASG/InstanceSecurityGroup/from devphotosalbSecurityGroup7D4E18D0:8080
+  ASGInstanceProfile0A2834D7:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - Ref: edxProjectRoleEC195CF4
+    Metadata:
+      aws:cdk:path: dev/ASG/InstanceProfile
+  ASGLaunchConfigC00AF12B:
+    Type: AWS::AutoScaling::LaunchConfiguration
+    Properties:
+      ImageId:
+        Ref: SsmParameterValueawsserviceamiamazonlinuxlatestamzn2amihvmx8664gp2C96584B6F00A464EAD1953AFF4B05118Parameter
+      InstanceType: t2.micro
+      IamInstanceProfile:
+        Ref: ASGInstanceProfile0A2834D7
+      SecurityGroups:
+        - Fn::GetAtt:
+            - ASGInstanceSecurityGroup0525485D
+            - GroupId
+      UserData:
+        Fn::Base64:
+          Fn::Join:
+            - ""
+            - - >
+                #!/bin/bash
+
+                sudo yum install python37 -y
+
+                sudo yum install python-pip -y
+
+                wget https://s3-us-west-2.amazonaws.com/us-west-2-tcdev/courses/AWS-100-ADG/v1.1.0/exercises/ex-rds.zip
+
+                unzip ex-rds.zip
+
+                cd exercise-rds/
+
+                python3 -m venv venv
+
+                source venv/bin/activate
+
+                pip3 install boto3
+
+                pip3 install -r FlaskApp/requirements.txt
+
+                pip3 install Pillow
+
+                pip3 install mysql-connector
+
+                python3 exercise-rds/SetupScripts/database_create_tables.py
+              - Fn::GetAtt:
+                  - edxphotosdb4A08F088
+                  - Endpoint.Address
+              - >-
+                
+                master
+
+                edxrdspasword
+
+                Photos
+
+                edxwebuserpassword
+
+                export DATABASE_HOST=
+              - Fn::GetAtt:
+                  - edxphotosdb4A08F088
+                  - Endpoint.Address
+              - >-
+                
+                export DATABASE_USER=web_user
+
+                export DATABASE_PASSWORD=edxrdspasword
+
+                export DATABASE_DB_NAME=Photos
+
+                export PHOTOS_BUCKET=
+              - Ref: edxbuildawss39543392C
+              - >-
+                
+                export FLASK_SECRET=kuma
+
+                export AWS_DEFAULT_REGION=us-east-1
+
+                python3 exercise-rds/FlaskApp/application.py
+    DependsOn:
+      - edxProjectRoleDefaultPolicy472F68EB
+      - edxProjectRoleEC195CF4
+    Metadata:
+      aws:cdk:path: dev/ASG/LaunchConfig
+  ASG46ED3070:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      MaxSize: "3"
+      MinSize: "2"
+      DesiredCapacity: "2"
+      LaunchConfigurationName:
+        Ref: ASGLaunchConfigC00AF12B
+      LoadBalancerNames:
+        - Ref: photosalb99D4657F
+      Tags:
+        - Key: Name
+          PropagateAtLaunch: true
+          Value: dev/ASG
+      VPCZoneIdentifier:
+        - Ref: cdkVpcDatabaseSubnet1Subnet7673F5EE
+        - Ref: cdkVpcDatabaseSubnet2Subnet63ECDEF1
+    UpdatePolicy:
+      AutoScalingScheduledAction:
+        IgnoreUnmodifiedGroupSizeProperties: true
+    Metadata:
+      aws:cdk:path: dev/ASG/ASG
+  photospoolBCDAEC7D:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      AutoVerifiedAttributes:
+        - email
+      LambdaConfig: {}
+      UsernameAttributes:
+        - email
+        - phone_number
+    Metadata:
+      aws:cdk:path: dev/photos-pool/Resource
+  WebsiteClient4DA5AC7A:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      UserPoolId:
+        Ref: photospoolBCDAEC7D
+      ExplicitAuthFlows:
+        - USER_PASSWORD_AUTH
+      GenerateSecret: true
+    Metadata:
+      aws:cdk:path: dev/WebsiteClient/Resource
+  CDKMetadata:
+    Type: AWS::CDK::Metadata
+    Properties:
+      Modules: aws-cdk=1.18.0,@aws-cdk/assets=1.18.0,@aws-cdk/aws-apigateway=1.18.0,@aws-cdk/aws-applicationautoscaling=1.18.0,@aws-cdk/aws-autoscaling=1.18.0,@aws-cdk/aws-autoscaling-common=1.18.0,@aws-cdk/aws-cloudwatch=1.18.0,@aws-cdk/aws-cognito=1.18.0,@aws-cdk/aws-dynamodb=1.18.0,@aws-cdk/aws-ec2=1.18.0,@aws-cdk/aws-elasticloadbalancing=1.18.0,@aws-cdk/aws-elasticloadbalancingv2=1.18.0,@aws-cdk/aws-events=1.18.0,@aws-cdk/aws-iam=1.18.0,@aws-cdk/aws-kms=1.18.0,@aws-cdk/aws-lambda=1.18.0,@aws-cdk/aws-lambda-event-sources=1.18.0,@aws-cdk/aws-rds=1.18.0,@aws-cdk/aws-s3=1.18.0,@aws-cdk/aws-s3-assets=1.18.0,@aws-cdk/aws-s3-notifications=1.18.0,@aws-cdk/aws-sam=1.18.0,@aws-cdk/aws-secretsmanager=1.18.0,@aws-cdk/aws-sns=1.18.0,@aws-cdk/aws-sns-subscriptions=1.18.0,@aws-cdk/aws-sqs=1.18.0,@aws-cdk/aws-ssm=1.18.0,@aws-cdk/core=1.18.0,@aws-cdk/cx-api=1.18.0,@aws-cdk/region-info=1.18.0,jsii-runtime=node.js/v12.13.1
+Parameters:
+  AssetParameters2977cda617cace92e196f23e071eb6b8eefbae42ed35487777deaba1e541b964S3BucketA40AE0EC:
+    Type: String
+    Description: S3 bucket for asset "2977cda617cace92e196f23e071eb6b8eefbae42ed35487777deaba1e541b964"
+  AssetParameters2977cda617cace92e196f23e071eb6b8eefbae42ed35487777deaba1e541b964S3VersionKeyB260165E:
+    Type: String
+    Description: S3 key for asset version "2977cda617cace92e196f23e071eb6b8eefbae42ed35487777deaba1e541b964"
+  AssetParameters2977cda617cace92e196f23e071eb6b8eefbae42ed35487777deaba1e541b964ArtifactHash7C2E9618:
+    Type: String
+    Description: Artifact hash for asset "2977cda617cace92e196f23e071eb6b8eefbae42ed35487777deaba1e541b964"
+  SsmParameterValueawsserviceamiamazonlinuxlatestamzn2amihvmx8664gp2C96584B6F00A464EAD1953AFF4B05118Parameter:
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2
+
