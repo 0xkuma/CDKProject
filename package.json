@@ -28,6 +28,8 @@
     "@aws-cdk/aws-rds": "^1.18.0",
     "@aws-cdk/aws-s3": "^1.18.0",
     "@aws-cdk/core": "^1.18.0",
-    "source-map-support": "^0.5.16"
+    "i": "^0.3.6",
+    "source-map-support": "^0.5.16",
+    "@aws-cdk/aws-sns-subscriptions": "latest"
   }
 }

@@ -1,14 +1,21 @@
 import cdk = require("@aws-cdk/core");
-import {Tag} from "@aws-cdk/core";
 import ec2 = require("@aws-cdk/aws-ec2");
 import iam = require("@aws-cdk/aws-iam");
 import s3 = require("@aws-cdk/aws-s3");
 import rds = require("@aws-cdk/aws-rds");
 import elbv2 = require("@aws-cdk/aws-elasticloadbalancingv2");
 import autoscaling = require("@aws-cdk/aws-autoscaling");
-import cognito = require("@aws-cdk/aws-cognito");
-import {Policy} from "@aws-cdk/aws-iam";
+import sqs = require("@aws-cdk/aws-sqs");
+import sns = require("@aws-cdk/aws-sns");
+import subscriptions = require('@aws-cdk/aws-sns-subscriptions');
+import lambda = require("@aws-cdk/aws-lambda");
 
+import {Tag} from "@aws-cdk/core";
+import {Effect} from "@aws-cdk/aws-iam";
+
+
+import {regexQuote} from "@aws-cdk/core/lib/private/encoding";
+import fn = jest.fn;
 
 export class CdkWorkshopStack extends cdk.Stack {
     constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
@@ -101,15 +108,45 @@ export class CdkWorkshopStack extends cdk.Stack {
                 "ssm:*"
             ]
         });
+
+        //Create ec2webserverrole
         const ec2_webserver_role = new iam.Role(this, "ec2-webserver-role", {
             assumedBy: new iam.ServicePrincipal("ec2.amazonaws.com")
         });
         ec2_webserver_role.addToPolicy(statement1)
+
         //Create IAM User and Group
         const role = new iam.Role(this, "edxProjectRole", {
             assumedBy: new iam.ServicePrincipal("ec2.amazonaws.com")
         });
         role.addToPolicy(policy);
+
+        //create sqs(ex12)
+        const QueuePolicy = new iam.PolicyStatement({
+            resources: ["*"],
+            actions: [
+                "sqs:SendMessage"
+            ]
+        });
+        const uploads_queue = new sqs.Queue(this, "uploads-queue", {
+            queueName: "uploads-queue"
+        });
+        uploads_queue.addToResourcePolicy(QueuePolicy);
+
+        //create s3(ex12)
+        const sns_bucket = new s3.CfnBucket(this, "sns_bucket", {
+            bucketName: "imagebucketsns-somerandomnum",
+
+        });
+
+
+        //create sns(ex12)
+        const uploads_topic = new sns.Topic(this, "uploads-topic", {
+            displayName: "uploads-topic",
+        });
+        uploads_topic.addSubscription(new subscriptions.SqsSubscription(uploads_queue))
+
+
 
         //Create SG
         const sg = new ec2.SecurityGroup(this, "edx-ec2-sg", {
