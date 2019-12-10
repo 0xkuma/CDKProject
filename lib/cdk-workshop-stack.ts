@@ -12,6 +12,7 @@ import sns = require("@aws-cdk/aws-sns");
 import subs = require("@aws-cdk/aws-sns-subscriptions");
 import sqs = require("@aws-cdk/aws-sqs");
 import _lambda = require("@aws-cdk/aws-lambda");
+import cdn = require("@aws-cdk/aws-cloudfront")
 import { SnsEventSource } from "@aws-cdk/aws-lambda-event-sources";
 import path = require("path");
 
@@ -34,12 +35,12 @@ export class CdkWorkshopStack extends cdk.Stack {
           subnetType: ec2.SubnetType.ISOLATED,
           name: "Database",
           cidrMask: 24
+        },
+        {
+          subnetType: ec2.SubnetType.PRIVATE,
+          name: 'ApplicationPrivate',
+          cidrMask: 24,
         }
-        // {
-        //   subnetType: ec2.SubnetType.PRIVATE,
-        //   name: 'ApplicationPrivate',
-        //   cidrMask: 24,
-        // }
       ]
     });
     Tag.add(vpc, "Name", "edx-build-aws-vpc");
@@ -50,6 +51,18 @@ export class CdkWorkshopStack extends cdk.Stack {
       encryption: s3.BucketEncryption.UNENCRYPTED,
       publicReadAccess: false,
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL
+    });
+
+    //Add Bucket to CDK
+    const distribution = new cdn.CloudFrontWebDistribution(this, 'edx-build-aws-s3-cdn', {
+      originConfigs: [
+        {
+          s3OriginSource: {
+            s3BucketSource: bucket
+          },
+          behaviors: [{ isDefaultBehavior: true }]
+        }
+      ]
     });
 
     //Create Policy for role
@@ -229,6 +242,10 @@ export class CdkWorkshopStack extends cdk.Stack {
       userData: userData,
       minCapacity: 2,
       maxCapacity: 3
+    });
+
+    asg.scaleOnCpuUtilization('KeepSpareCPU', {
+      targetUtilizationPercent: 50
     });
 
     lb.addTarget(asg);
