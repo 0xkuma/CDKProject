@@ -62,6 +62,26 @@ Resources:
       - cdkVpcVPCGW3EC4BD15
     Metadata:
       aws:cdk:path: dev/cdk-Vpc/ApplicationPublicSubnet1/DefaultRoute
+  cdkVpcApplicationPublicSubnet1EIP8A06C0E7:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+    Metadata:
+      aws:cdk:path: dev/cdk-Vpc/ApplicationPublicSubnet1/EIP
+  cdkVpcApplicationPublicSubnet1NATGateway31350BA6:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId:
+        Fn::GetAtt:
+          - cdkVpcApplicationPublicSubnet1EIP8A06C0E7
+          - AllocationId
+      SubnetId:
+        Ref: cdkVpcApplicationPublicSubnet1SubnetABA33F78
+      Tags:
+        - Key: Name
+          Value: dev/cdk-Vpc/ApplicationPublicSubnet1
+    Metadata:
+      aws:cdk:path: dev/cdk-Vpc/ApplicationPublicSubnet1/NATGateway
   cdkVpcApplicationPublicSubnet2Subnet9D205005:
     Type: AWS::EC2::Subnet
     Properties:
@@ -113,10 +133,128 @@ Resources:
       - cdkVpcVPCGW3EC4BD15
     Metadata:
       aws:cdk:path: dev/cdk-Vpc/ApplicationPublicSubnet2/DefaultRoute
-  cdkVpcDatabaseSubnet1Subnet7673F5EE:
+  cdkVpcApplicationPublicSubnet2EIP22A8820F:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+    Metadata:
+      aws:cdk:path: dev/cdk-Vpc/ApplicationPublicSubnet2/EIP
+  cdkVpcApplicationPublicSubnet2NATGateway7AA5D907:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId:
+        Fn::GetAtt:
+          - cdkVpcApplicationPublicSubnet2EIP22A8820F
+          - AllocationId
+      SubnetId:
+        Ref: cdkVpcApplicationPublicSubnet2Subnet9D205005
+      Tags:
+        - Key: Name
+          Value: dev/cdk-Vpc/ApplicationPublicSubnet2
+    Metadata:
+      aws:cdk:path: dev/cdk-Vpc/ApplicationPublicSubnet2/NATGateway
+  cdkVpcApplicationPrivateSubnet1Subnet97656790:
     Type: AWS::EC2::Subnet
     Properties:
       CidrBlock: 10.1.2.0/24
+      VpcId:
+        Ref: cdkVpc3BDA7A91
+      AvailabilityZone:
+        Fn::Select:
+          - 0
+          - Fn::GetAZs: ""
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: dev/cdk-Vpc/ApplicationPrivateSubnet1
+        - Key: aws-cdk:subnet-name
+          Value: ApplicationPrivate
+        - Key: aws-cdk:subnet-type
+          Value: Private
+    Metadata:
+      aws:cdk:path: dev/cdk-Vpc/ApplicationPrivateSubnet1/Subnet
+  cdkVpcApplicationPrivateSubnet1RouteTable6EE96623:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: cdkVpc3BDA7A91
+      Tags:
+        - Key: Name
+          Value: dev/cdk-Vpc/ApplicationPrivateSubnet1
+    Metadata:
+      aws:cdk:path: dev/cdk-Vpc/ApplicationPrivateSubnet1/RouteTable
+  cdkVpcApplicationPrivateSubnet1RouteTableAssociation26656FBF:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId:
+        Ref: cdkVpcApplicationPrivateSubnet1RouteTable6EE96623
+      SubnetId:
+        Ref: cdkVpcApplicationPrivateSubnet1Subnet97656790
+    Metadata:
+      aws:cdk:path: dev/cdk-Vpc/ApplicationPrivateSubnet1/RouteTableAssociation
+  cdkVpcApplicationPrivateSubnet1DefaultRouteA2D6EEB5:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId:
+        Ref: cdkVpcApplicationPrivateSubnet1RouteTable6EE96623
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId:
+        Ref: cdkVpcApplicationPublicSubnet1NATGateway31350BA6
+    Metadata:
+      aws:cdk:path: dev/cdk-Vpc/ApplicationPrivateSubnet1/DefaultRoute
+  cdkVpcApplicationPrivateSubnet2Subnet02CC5070:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: 10.1.3.0/24
+      VpcId:
+        Ref: cdkVpc3BDA7A91
+      AvailabilityZone:
+        Fn::Select:
+          - 1
+          - Fn::GetAZs: ""
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: dev/cdk-Vpc/ApplicationPrivateSubnet2
+        - Key: aws-cdk:subnet-name
+          Value: ApplicationPrivate
+        - Key: aws-cdk:subnet-type
+          Value: Private
+    Metadata:
+      aws:cdk:path: dev/cdk-Vpc/ApplicationPrivateSubnet2/Subnet
+  cdkVpcApplicationPrivateSubnet2RouteTable2526BD63:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: cdkVpc3BDA7A91
+      Tags:
+        - Key: Name
+          Value: dev/cdk-Vpc/ApplicationPrivateSubnet2
+    Metadata:
+      aws:cdk:path: dev/cdk-Vpc/ApplicationPrivateSubnet2/RouteTable
+  cdkVpcApplicationPrivateSubnet2RouteTableAssociationC4B89ABA:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId:
+        Ref: cdkVpcApplicationPrivateSubnet2RouteTable2526BD63
+      SubnetId:
+        Ref: cdkVpcApplicationPrivateSubnet2Subnet02CC5070
+    Metadata:
+      aws:cdk:path: dev/cdk-Vpc/ApplicationPrivateSubnet2/RouteTableAssociation
+  cdkVpcApplicationPrivateSubnet2DefaultRouteE51F7989:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId:
+        Ref: cdkVpcApplicationPrivateSubnet2RouteTable2526BD63
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId:
+        Ref: cdkVpcApplicationPublicSubnet2NATGateway7AA5D907
+    Metadata:
+      aws:cdk:path: dev/cdk-Vpc/ApplicationPrivateSubnet2/DefaultRoute
+  cdkVpcDatabaseSubnet1Subnet7673F5EE:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: 10.1.4.0/24
       VpcId:
         Ref: cdkVpc3BDA7A91
       AvailabilityZone:
@@ -155,7 +293,7 @@ Resources:
   cdkVpcDatabaseSubnet2Subnet63ECDEF1:
     Type: AWS::EC2::Subnet
     Properties:
-      CidrBlock: 10.1.3.0/24
+      CidrBlock: 10.1.5.0/24
       VpcId:
         Ref: cdkVpc3BDA7A91
       AvailabilityZone:
@@ -241,6 +379,40 @@ Resources:
       - uploadstopicBB4CA8DF
     Metadata:
       aws:cdk:path: dev/edx-build-aws-s3/Notifications/Resource
+  edxbuildawss3cdnCFDistribution668EE10A:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        DefaultCacheBehavior:
+          AllowedMethods:
+            - GET
+            - HEAD
+          CachedMethods:
+            - GET
+            - HEAD
+          Compress: true
+          ForwardedValues:
+            Cookies:
+              Forward: none
+            QueryString: false
+          TargetOriginId: origin1
+          ViewerProtocolPolicy: redirect-to-https
+        DefaultRootObject: index.html
+        Enabled: true
+        HttpVersion: http2
+        IPV6Enabled: true
+        Origins:
+          - DomainName:
+              Fn::GetAtt:
+                - edxbuildawss39543392C
+                - RegionalDomainName
+            Id: origin1
+            S3OriginConfig: {}
+        PriceClass: PriceClass_100
+        ViewerCertificate:
+          CloudFrontDefaultCertificate: true
+    Metadata:
+      aws:cdk:path: dev/edx-build-aws-s3-cdn/CFDistribution
   edxProjectRoleEC195CF4:
     Type: AWS::IAM::Role
     Properties:
@@ -428,8 +600,8 @@ Resources:
               - labelslambdasg185D907C
               - GroupId
         SubnetIds:
-          - Ref: cdkVpcDatabaseSubnet1Subnet7673F5EE
-          - Ref: cdkVpcDatabaseSubnet2Subnet63ECDEF1
+          - Ref: cdkVpcApplicationPrivateSubnet1Subnet97656790
+          - Ref: cdkVpcApplicationPrivateSubnet2Subnet02CC5070
     DependsOn:
       - labelslambdaroleDefaultPolicy26C8134A
       - labelslambdaroleC46B17D8
@@ -648,30 +820,25 @@ Resources:
       - BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleB6FB88EC
     Metadata:
       aws:cdk:path: dev/BucketNotificationsHandler050a0587b7544547bf325f094a3db834/Resource
-  edxphotosdbSubnetGroup02F332B9:
+  edxphotosdbSubnetsF6E8C008:
     Type: AWS::RDS::DBSubnetGroup
     Properties:
-      DBSubnetGroupDescription: Subnet group for edx-photos-db database
+      DBSubnetGroupDescription: Subnets for edx-photos-db database
       SubnetIds:
         - Ref: cdkVpcDatabaseSubnet1Subnet7673F5EE
         - Ref: cdkVpcDatabaseSubnet2Subnet63ECDEF1
     Metadata:
-      aws:cdk:path: dev/edx-photos-db/SubnetGroup
+      aws:cdk:path: dev/edx-photos-db/Subnets
   edxphotosdb4A08F088:
-    Type: AWS::RDS::DBInstance
+    Type: AWS::RDS::DBCluster
     Properties:
-      DBInstanceClass: db.t2.small
-      AllocatedStorage: "100"
-      CopyTagsToSnapshot: true
-      DBName: Photos
-      DBSubnetGroupName:
-        Ref: edxphotosdbSubnetGroup02F332B9
-      DeletionProtection: true
       Engine: mysql
+      DatabaseName: Photos
+      DBSubnetGroupName:
+        Ref: edxphotosdbSubnetsF6E8C008
       MasterUsername: master
       MasterUserPassword: edxrdspasword
-      StorageType: gp2
-      VPCSecurityGroups:
+      VpcSecurityGroupIds:
         - Fn::GetAtt:
             - labelslambdasg185D907C
             - GroupId
@@ -679,6 +846,34 @@ Resources:
     DeletionPolicy: Retain
     Metadata:
       aws:cdk:path: dev/edx-photos-db/Resource
+  edxphotosdbInstance14774004F:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBInstanceClass: db.t2.small
+      DBClusterIdentifier:
+        Ref: edxphotosdb4A08F088
+      DBSubnetGroupName:
+        Ref: edxphotosdbSubnetsF6E8C008
+      Engine: mysql
+      PubliclyAccessible: false
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain
+    Metadata:
+      aws:cdk:path: dev/edx-photos-db/Instance1
+  edxphotosdbInstance203527504:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBInstanceClass: db.t2.small
+      DBClusterIdentifier:
+        Ref: edxphotosdb4A08F088
+      DBSubnetGroupName:
+        Ref: edxphotosdbSubnetsF6E8C008
+      Engine: mysql
+      PubliclyAccessible: false
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain
+    Metadata:
+      aws:cdk:path: dev/edx-photos-db/Instance2
   photosalbSecurityGroup4667EAE7:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -793,7 +988,7 @@ Resources:
         Fn::Base64:
           Fn::Join:
             - ""
-            - - >
+            - - >-
                 #!/bin/bash
 
                 sudo yum install python37 -y
@@ -819,11 +1014,9 @@ Resources:
                 pip3 install mysql-connector
 
                 python3 exercise-rds/SetupScripts/database_create_tables.py
-              - Fn::GetAtt:
-                  - edxphotosdb4A08F088
-                  - Endpoint.Address
-              - >-
-                
+
+                dev/edx-photos-db
+
                 master
 
                 edxrdspasword
@@ -832,12 +1025,8 @@ Resources:
 
                 edxwebuserpassword
 
-                export DATABASE_HOST=
-              - Fn::GetAtt:
-                  - edxphotosdb4A08F088
-                  - Endpoint.Address
-              - >-
-                
+                export DATABASE_HOST=dev/edx-photos-db
+
                 export DATABASE_USER=web_user
 
                 export DATABASE_PASSWORD=edxrdspasword
@@ -873,13 +1062,25 @@ Resources:
           PropagateAtLaunch: true
           Value: dev/ASG
       VPCZoneIdentifier:
-        - Ref: cdkVpcDatabaseSubnet1Subnet7673F5EE
-        - Ref: cdkVpcDatabaseSubnet2Subnet63ECDEF1
+        - Ref: cdkVpcApplicationPrivateSubnet1Subnet97656790
+        - Ref: cdkVpcApplicationPrivateSubnet2Subnet02CC5070
     UpdatePolicy:
       AutoScalingScheduledAction:
         IgnoreUnmodifiedGroupSizeProperties: true
     Metadata:
       aws:cdk:path: dev/ASG/ASG
+  ASGScalingPolicyKeepSpareCPU18EF1024:
+    Type: AWS::AutoScaling::ScalingPolicy
+    Properties:
+      AutoScalingGroupName:
+        Ref: ASG46ED3070
+      PolicyType: TargetTrackingScaling
+      TargetTrackingConfiguration:
+        PredefinedMetricSpecification:
+          PredefinedMetricType: ASGAverageCPUUtilization
+        TargetValue: 50
+    Metadata:
+      aws:cdk:path: dev/ASG/ScalingPolicyKeepSpareCPU/Resource
   photospoolBCDAEC7D:
     Type: AWS::Cognito::UserPool
     Properties:
@@ -904,7 +1105,7 @@ Resources:
   CDKMetadata:
     Type: AWS::CDK::Metadata
     Properties:
-      Modules: aws-cdk=1.18.0,@aws-cdk/assets=1.18.0,@aws-cdk/aws-apigateway=1.18.0,@aws-cdk/aws-applicationautoscaling=1.18.0,@aws-cdk/aws-autoscaling=1.18.0,@aws-cdk/aws-autoscaling-common=1.18.0,@aws-cdk/aws-cloudwatch=1.18.0,@aws-cdk/aws-cognito=1.18.0,@aws-cdk/aws-dynamodb=1.18.0,@aws-cdk/aws-ec2=1.18.0,@aws-cdk/aws-elasticloadbalancing=1.18.0,@aws-cdk/aws-elasticloadbalancingv2=1.18.0,@aws-cdk/aws-events=1.18.0,@aws-cdk/aws-iam=1.18.0,@aws-cdk/aws-kms=1.18.0,@aws-cdk/aws-lambda=1.18.0,@aws-cdk/aws-lambda-event-sources=1.18.0,@aws-cdk/aws-rds=1.18.0,@aws-cdk/aws-s3=1.18.0,@aws-cdk/aws-s3-assets=1.18.0,@aws-cdk/aws-s3-notifications=1.18.0,@aws-cdk/aws-sam=1.18.0,@aws-cdk/aws-secretsmanager=1.18.0,@aws-cdk/aws-sns=1.18.0,@aws-cdk/aws-sns-subscriptions=1.18.0,@aws-cdk/aws-sqs=1.18.0,@aws-cdk/aws-ssm=1.18.0,@aws-cdk/core=1.18.0,@aws-cdk/cx-api=1.18.0,@aws-cdk/region-info=1.18.0,jsii-runtime=node.js/v12.13.1
+      Modules: aws-cdk=1.18.0,@aws-cdk/assets=1.18.0,@aws-cdk/aws-apigateway=1.18.0,@aws-cdk/aws-applicationautoscaling=1.18.0,@aws-cdk/aws-autoscaling=1.18.0,@aws-cdk/aws-autoscaling-common=1.18.0,@aws-cdk/aws-certificatemanager=1.18.0,@aws-cdk/aws-cloudformation=1.18.0,@aws-cdk/aws-cloudfront=1.18.0,@aws-cdk/aws-cloudwatch=1.18.0,@aws-cdk/aws-cognito=1.18.0,@aws-cdk/aws-dynamodb=1.18.0,@aws-cdk/aws-ec2=1.18.0,@aws-cdk/aws-elasticloadbalancing=1.18.0,@aws-cdk/aws-elasticloadbalancingv2=1.18.0,@aws-cdk/aws-events=1.18.0,@aws-cdk/aws-iam=1.18.0,@aws-cdk/aws-kms=1.18.0,@aws-cdk/aws-lambda=1.18.0,@aws-cdk/aws-lambda-event-sources=1.18.0,@aws-cdk/aws-rds=1.18.0,@aws-cdk/aws-s3=1.18.0,@aws-cdk/aws-s3-assets=1.18.0,@aws-cdk/aws-s3-notifications=1.18.0,@aws-cdk/aws-sam=1.18.0,@aws-cdk/aws-secretsmanager=1.18.0,@aws-cdk/aws-sns=1.18.0,@aws-cdk/aws-sns-subscriptions=1.18.0,@aws-cdk/aws-sqs=1.18.0,@aws-cdk/aws-ssm=1.18.0,@aws-cdk/core=1.18.0,@aws-cdk/cx-api=1.18.0,@aws-cdk/region-info=1.18.0,jsii-runtime=node.js/v12.13.1
 Parameters:
   AssetParameters2977cda617cace92e196f23e071eb6b8eefbae42ed35487777deaba1e541b964S3BucketA40AE0EC:
     Type: String

@@ -12,16 +12,18 @@ import sns = require("@aws-cdk/aws-sns");
 import subs = require("@aws-cdk/aws-sns-subscriptions");
 import sqs = require("@aws-cdk/aws-sqs");
 import _lambda = require("@aws-cdk/aws-lambda");
-import cdn = require("@aws-cdk/aws-cloudfront")
+import cdn = require("@aws-cdk/aws-cloudfront");
 import { SnsEventSource } from "@aws-cdk/aws-lambda-event-sources";
 import path = require("path");
+import { PolicyStatement } from "@aws-cdk/aws-iam";
+import { Port } from "@aws-cdk/aws-ec2";
 
 export class CdkWorkshopStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
     // The code that defines your stack goes here
 
-    //Create VPC
+    //Create VPC -- Chi
     const vpc = new ec2.Vpc(this, "cdk-Vpc", {
       maxAzs: 2,
       cidr: "10.1.0.0/16",
@@ -32,20 +34,20 @@ export class CdkWorkshopStack extends cdk.Stack {
           cidrMask: 24
         },
         {
-          subnetType: ec2.SubnetType.ISOLATED,
-          name: "Database",
+          subnetType: ec2.SubnetType.PRIVATE,
+          name: "ApplicationPrivate",
           cidrMask: 24
         },
         {
-          subnetType: ec2.SubnetType.PRIVATE,
-          name: 'ApplicationPrivate',
-          cidrMask: 24,
+          subnetType: ec2.SubnetType.ISOLATED,
+          name: "Database",
+          cidrMask: 24
         }
       ]
     });
     Tag.add(vpc, "Name", "edx-build-aws-vpc");
 
-    //Create S3 Bucket
+    //Create S3 Bucket -- Sky
     const bucket = new s3.Bucket(this, "edx-build-aws-s3", {
       versioned: false,
       encryption: s3.BucketEncryption.UNENCRYPTED,
@@ -53,19 +55,23 @@ export class CdkWorkshopStack extends cdk.Stack {
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL
     });
 
-    //Add Bucket to CDK
-    const distribution = new cdn.CloudFrontWebDistribution(this, 'edx-build-aws-s3-cdn', {
-      originConfigs: [
-        {
-          s3OriginSource: {
-            s3BucketSource: bucket
-          },
-          behaviors: [{ isDefaultBehavior: true }]
-        }
-      ]
-    });
+    //Add Bucket to CDN -- Kuma
+    const distribution = new cdn.CloudFrontWebDistribution(
+      this,
+      "edx-build-aws-s3-cdn",
+      {
+        originConfigs: [
+          {
+            s3OriginSource: {
+              s3BucketSource: bucket
+            },
+            behaviors: [{ isDefaultBehavior: true }]
+          }
+        ]
+      }
+    );
 
-    //Create Policy for role
+    //Create Policy for role -- Sky
     const policy = new iam.PolicyStatement({
       resources: ["*"],
       actions: [
@@ -100,7 +106,7 @@ export class CdkWorkshopStack extends cdk.Stack {
       ]
     });
 
-    //Create IAM User and Group
+    //Create IAM User and Group --Sky
     const role = new iam.Role(this, "edxProjectRole", {
       assumedBy: new iam.ServicePrincipal("ec2.amazonaws.com")
     });
@@ -117,7 +123,7 @@ export class CdkWorkshopStack extends cdk.Stack {
       "Allow inbound 8080 port"
     );
 
-    //Create Lambda Function
+    //Create Lambda Function -- Chi
     const statement = new iam.PolicyStatement();
     statement.addArnPrincipal(
       "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
@@ -149,7 +155,7 @@ export class CdkWorkshopStack extends cdk.Stack {
       tracing: _lambda.Tracing.ACTIVE
     });
 
-    //Create sqs
+    //Create sqs -- Kuma
     const quene = new sqs.Queue(this, "uploads-queue");
 
     //Create sns
@@ -167,19 +173,28 @@ export class CdkWorkshopStack extends cdk.Stack {
 
     fn.addEventSource(new SnsEventSource(myTopic));
 
-    const rdsinstance = new rds.DatabaseInstance(this, "edx-photos-db", {
+    // tony
+    const rdsinstance = new rds.DatabaseCluster(this, "edx-photos-db", {
       engine: rds.DatabaseInstanceEngine.MYSQL,
-      instanceClass: ec2.InstanceType.of(
-        ec2.InstanceClass.BURSTABLE2,
-        ec2.InstanceSize.SMALL
-      ),
-      masterUsername: "master",
-      masterUserPassword: new cdk.SecretValue("edxrdspasword"),
-      vpc,
-      databaseName: "Photos",
-      securityGroups: [_lambdaSG]
+      masterUser: {
+        username: "master",
+        password: new cdk.SecretValue("edxrdspasword")
+      },
+      instanceProps: {
+        instanceType: ec2.InstanceType.of(
+          ec2.InstanceClass.BURSTABLE2,
+          ec2.InstanceSize.SMALL
+        ),
+        vpcSubnets: {
+          subnetType: ec2.SubnetType.ISOLATED
+        },
+        vpc,
+        securityGroup: _lambdaSG
+      },
+      defaultDatabaseName: "Photos"
     });
 
+    //Create ami -- tony
     const awsAMI = new ec2.AmazonLinuxImage({
       generation: ec2.AmazonLinuxGeneration.AMAZON_LINUX_2
     });
@@ -198,12 +213,12 @@ export class CdkWorkshopStack extends cdk.Stack {
       "pip3 install Pillow",
       "pip3 install mysql-connector",
       "python3 exercise-rds/SetupScripts/database_create_tables.py",
-      rdsinstance.dbInstanceEndpointAddress,
+      rdsinstance.toString(),
       "master",
       "edxrdspasword",
       "Photos",
       "edxwebuserpassword",
-      "export DATABASE_HOST=" + rdsinstance.dbInstanceEndpointAddress,
+      "export DATABASE_HOST=" + rdsinstance,
       "export DATABASE_USER=web_user",
       "export DATABASE_PASSWORD=edxrdspasword",
       "export DATABASE_DB_NAME=Photos",
@@ -244,7 +259,7 @@ export class CdkWorkshopStack extends cdk.Stack {
       maxCapacity: 3
     });
 
-    asg.scaleOnCpuUtilization('KeepSpareCPU', {
+    asg.scaleOnCpuUtilization("KeepSpareCPU", {
       targetUtilizationPercent: 50
     });
 
@@ -253,7 +268,7 @@ export class CdkWorkshopStack extends cdk.Stack {
     bucket.grantReadWrite(asg);
     bucket.grantReadWrite(fn);
 
-    //Create Cognito
+    //Create Cognito -- Kuma
     const userPool: cognito.UserPool = new cognito.UserPool(
       this,
       "photos-pool",
