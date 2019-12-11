@@ -53,7 +53,7 @@ export class CdkWorkshopStack extends cdk.Stack {
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL
     });
 
-    //Add Bucket to CDK
+    //Add Bucket to CDN
     const distribution = new cdn.CloudFrontWebDistribution(this, 'edx-build-aws-s3-cdn', {
       originConfigs: [
         {
